@@ -1,0 +1,23 @@
+## Build outputs
+bin/
+obj/
+
+## IDEs and editors
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## User secrets and keys
+appsettings.Development.json
+*.pem
+*.key
+*.pfx
+
+## Packages and publish outputs
+*.nupkg
+publish/
+dist/
+out/
