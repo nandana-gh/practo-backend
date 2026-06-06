@@ -62,16 +62,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { Message = "Invalid email or password" });
         }
 
-        if (!user.IsVerified)
-        {
-            // If not verified, trigger a new OTP
-            await SendOtpInternalAsync(user.Email);
-            return StatusCode(StatusCodes.Status403Forbidden, new { 
-                Message = "Account email not verified. An OTP has been sent to your email.",
-                RequiresVerification = true,
-                Email = user.Email
-            });
-        }
+
 
         var token = _tokenService.GenerateToken(user);
         return Ok(new AuthResponse(
