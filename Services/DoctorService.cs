@@ -14,6 +14,12 @@ public class DoctorService : IDoctorService
         _context = context;
     }
 
+    public async Task<int?> GetDoctorIdByUserIdAsync(int userId)
+    {
+        var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == userId);
+        return doctor?.Id;
+    }
+
     public async Task<DoctorProfileDto?> GetDoctorProfileAsync(int doctorId)
     {
         var doctor = await _context.Doctors
@@ -50,7 +56,8 @@ public class DoctorService : IDoctorService
                 ImageUrl = dc.Clinic.ImageUrl,
                 Latitude = dc.Clinic.Latitude,
                 Longitude = dc.Clinic.Longitude
-            }).ToList()
+            }).ToList(),
+            VideoConsultationFee = doctor.VideoConsultationFee
         };
     }
 
@@ -92,5 +99,93 @@ public class DoctorService : IDoctorService
         }
 
         return slots;
+    }
+
+    public async Task<List<DoctorPatientDto>> GetDoctorPatientsAsync(int doctorId)
+    {
+        var appointments = await _context.Appointments
+            .Include(a => a.Patient)
+            .Where(a => a.DoctorId == doctorId)
+            .ToListAsync();
+
+        var patients = appointments
+            .GroupBy(a => a.PatientId)
+            .Select(g => new DoctorPatientDto
+            {
+                Id = g.Key,
+                Name = g.First().Patient.FirstName + " " + g.First().Patient.LastName,
+                Email = g.First().Patient.Email,
+                PhoneNumber = g.First().Patient.PhoneNumber,
+                LastVisitDate = g.Max(a => a.AppointmentDateTime),
+                TotalVisits = g.Count()
+            })
+            .OrderByDescending(p => p.LastVisitDate)
+            .ToList();
+
+        return patients;
+    }
+
+    public async Task<DoctorReportDto> GetDoctorReportsAsync(int doctorId)
+    {
+        var appointments = await _context.Appointments
+            .Where(a => a.DoctorId == doctorId)
+            .ToListAsync();
+
+        return new DoctorReportDto
+        {
+            TotalAppointments = appointments.Count,
+            TotalPatients = appointments.Select(a => a.PatientId).Distinct().Count(),
+            TotalEarnings = appointments.Where(a => a.Status != AppointmentStatus.Cancelled).Sum(a => a.Fee),
+            UpcomingAppointments = appointments.Count(a => a.AppointmentDateTime > DateTime.UtcNow && a.Status != AppointmentStatus.Cancelled)
+        };
+    }
+
+    public async Task<bool> UpdateDoctorProfileAsync(int doctorId, DoctorProfileUpdateDto dto)
+    {
+        var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Id == doctorId);
+        if (doctor == null) return false;
+
+        doctor.Qualifications = dto.Qualifications;
+        doctor.ExperienceYears = dto.ExperienceYears;
+        doctor.RegistrationNumber = dto.RegistrationNumber;
+        doctor.LanguagesSpoken = dto.LanguagesSpoken;
+        doctor.About = dto.About;
+        doctor.VideoConsultationFee = dto.VideoConsultationFee;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AddClinicToDoctorAsync(int doctorId, DoctorClinicCreateDto dto)
+    {
+        var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Id == doctorId);
+        if (doctor == null) return false;
+
+        var clinic = new Clinic
+        {
+            Name = dto.Name,
+            Address = dto.Address,
+            City = dto.City,
+            Locality = dto.Locality,
+            Timings = dto.Timings,
+            ImageUrl = "assets/images/clinics/default-clinic.png", // Hardcode default
+            Latitude = 0, // Should be geocoded realistically
+            Longitude = 0
+        };
+
+        await _context.Clinics.AddAsync(clinic);
+        await _context.SaveChangesAsync();
+
+        var doctorClinic = new DoctorClinic
+        {
+            DoctorId = doctorId,
+            ClinicId = clinic.Id,
+            ConsultationFee = dto.ConsultationFee
+        };
+
+        await _context.DoctorClinics.AddAsync(doctorClinic);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

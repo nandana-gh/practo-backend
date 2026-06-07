@@ -12,11 +12,13 @@ namespace practo_backend.Controllers;
 public class AppointmentController : ControllerBase
 {
     private readonly IAppointmentService _appointmentService;
+    private readonly IDoctorService _doctorService;
     private readonly IConfiguration _configuration;
 
-    public AppointmentController(IAppointmentService appointmentService, IConfiguration configuration)
+    public AppointmentController(IAppointmentService appointmentService, IDoctorService doctorService, IConfiguration configuration)
     {
         _appointmentService = appointmentService;
+        _doctorService = doctorService;
         _configuration = configuration;
     }
 
@@ -68,12 +70,18 @@ public class AppointmentController : ControllerBase
     public async Task<IActionResult> GetDoctorAppointments()
     {
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdStr, out var doctorId))
+        if (!int.TryParse(userIdStr, out var userId))
         {
             return Unauthorized("Invalid user token.");
         }
 
-        var appointments = await _appointmentService.GetDoctorAppointmentsAsync(doctorId);
+        var doctorId = await _doctorService.GetDoctorIdByUserIdAsync(userId);
+        if (doctorId == null)
+        {
+            return NotFound("Doctor not found.");
+        }
+
+        var appointments = await _appointmentService.GetDoctorAppointmentsAsync(doctorId.Value);
         return Ok(appointments);
     }
 }
