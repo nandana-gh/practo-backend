@@ -21,6 +21,7 @@ public class DoctorService : IDoctorService
             .Include(d => d.Specialty)
             .Include(d => d.DoctorClinics)
                 .ThenInclude(dc => dc.Clinic)
+            .Where(d => d.IsApproved)
             .FirstOrDefaultAsync(d => d.Id == doctorId);
 
         if (doctor == null) return null;

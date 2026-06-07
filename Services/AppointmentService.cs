@@ -8,10 +8,12 @@ namespace practo_backend.Services;
 public class AppointmentService : IAppointmentService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IPaymentService _paymentService;
 
-    public AppointmentService(ApplicationDbContext context)
+    public AppointmentService(ApplicationDbContext context, IPaymentService paymentService)
     {
         _context = context;
+        _paymentService = paymentService;
     }
 
     public async Task<Appointment?> BookAppointmentAsync(int patientId, BookAppointmentDto dto)
@@ -65,9 +67,17 @@ public class AppointmentService : IAppointmentService
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _context.Appointments.AddAsync(appointment);
-            await _context.SaveChangesAsync();
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync(); // Save to get Appointment ID
             
+            // Generate Razorpay Order
+            if (fee > 0)
+            {
+                string receiptId = $"apt_{appointment.Id}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                appointment.RazorpayOrderId = _paymentService.CreateOrder(fee, receiptId);
+                await _context.SaveChangesAsync();
+            }
+
             await transaction.CommitAsync();
 
             return appointment;
@@ -77,5 +87,62 @@ public class AppointmentService : IAppointmentService
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    public async Task<IEnumerable<AppointmentDetailsDto>> GetPatientAppointmentsAsync(int patientId)
+    {
+        return await _context.Appointments
+            .Include(a => a.Doctor)
+                .ThenInclude(d => d.Specialty)
+            .Include(a => a.Doctor)
+                .ThenInclude(d => d.User)
+            .Include(a => a.Clinic)
+            .Where(a => a.PatientId == patientId)
+            .OrderByDescending(a => a.AppointmentDateTime)
+            .Select(a => new AppointmentDetailsDto
+            {
+                Id = a.Id,
+                PatientId = a.PatientId,
+                PatientName = a.PatientName,
+                DoctorId = a.DoctorId,
+                DoctorName = a.Doctor.User != null ? a.Doctor.User.FirstName + " " + a.Doctor.User.LastName : "",
+                DoctorSpecialty = a.Doctor.Specialty != null ? a.Doctor.Specialty.Name : "",
+                ClinicId = a.ClinicId,
+                ClinicName = a.Clinic != null ? a.Clinic.Name : "",
+                AppointmentDateTime = a.AppointmentDateTime,
+                Type = a.Type,
+                Status = a.Status,
+                ReasonForVisit = a.ReasonForVisit,
+                CreatedAt = a.CreatedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<AppointmentDetailsDto>> GetDoctorAppointmentsAsync(int doctorId)
+    {
+        return await _context.Appointments
+            .Include(a => a.Patient)
+            .Include(a => a.Doctor)
+                .ThenInclude(d => d.User)
+            .Include(a => a.Clinic)
+            .Where(a => a.DoctorId == doctorId)
+            .OrderByDescending(a => a.AppointmentDateTime)
+            .Select(a => new AppointmentDetailsDto
+            {
+                Id = a.Id,
+                PatientId = a.PatientId,
+                PatientName = a.PatientName,
+                DoctorId = a.DoctorId,
+                DoctorName = a.Doctor.User != null ? a.Doctor.User.FirstName + " " + a.Doctor.User.LastName : "",
+                DoctorSpecialty = "",
+                ClinicId = a.ClinicId,
+                ClinicName = a.Clinic != null ? a.Clinic.Name : "",
+                AppointmentDateTime = a.AppointmentDateTime,
+                Type = a.Type,
+                Status = a.Status,
+                ReasonForVisit = a.ReasonForVisit,
+                CreatedAt = a.CreatedAt
+            })
+            .ToListAsync();
     }
 }

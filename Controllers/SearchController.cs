@@ -28,4 +28,13 @@ public class SearchController : ControllerBase
         var results = await _searchService.SearchDoctorsAsync(city, specialtySlug, query, gender, maxFee, consultType, sortBy);
         return Ok(results);
     }
+
+    [HttpGet("specialties")]
+    public async Task<IActionResult> GetSpecialties([FromServices] practo_backend.Data.ApplicationDbContext context)
+    {
+        var specialties = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            System.Linq.Queryable.Select(context.Specialties, s => new { s.Id, s.Name })
+        );
+        return Ok(specialties);
+    }
 }

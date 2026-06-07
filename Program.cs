@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
 
 // Configure MySQL Connection
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -55,8 +56,14 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IVideoConsultService, VideoConsultService>();
+builder.Services.AddScoped<ISurgeryService, SurgeryService>();
+builder.Services.AddScoped<IMedicineService, MedicineService>();
+builder.Services.AddScoped<ILabTestService, LabTestService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSignalR();
 
 // Configure Swagger with JWT support
 builder.Services.AddSwaggerGen(c =>
@@ -117,5 +124,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<practo_backend.Hubs.ChatHub>("/chathub");
 
 app.Run();

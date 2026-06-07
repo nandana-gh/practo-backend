@@ -8,7 +8,9 @@ public record RegisterRequest(
     string Email,
     string Password,
     string PhoneNumber,
-    UserRole Role
+    UserRole Role,
+    int? ExperienceYears = null,
+    decimal? VideoConsultationFee = null
 );
 
 public record LoginRequest(
