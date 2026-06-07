@@ -26,7 +26,9 @@ public class SearchService : ISearchService
         // City filter
         if (!string.IsNullOrEmpty(city))
         {
-            docsQuery = docsQuery.Where(d => d.DoctorClinics.Any(dc => dc.Clinic.City.ToLower() == city.ToLower()));
+            docsQuery = docsQuery.Where(d => 
+                d.DoctorClinics.Any(dc => dc.Clinic.City.ToLower() == city.ToLower()) || 
+                d.DoctorClinics.Count == 0); // Include if they don't have a clinic yet
         }
 
         // Specialty filter

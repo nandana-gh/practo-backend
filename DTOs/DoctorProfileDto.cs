@@ -16,6 +16,7 @@ public class DoctorProfileDto
     public string ProfileImageUrl { get; set; } = string.Empty;
     
     public List<ClinicDto> Clinics { get; set; } = new();
+    public decimal VideoConsultationFee { get; set; }
 }
 
 public class ClinicDto
