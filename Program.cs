@@ -55,8 +55,13 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IVideoConsultService, VideoConsultService>();
+builder.Services.AddScoped<ISurgeryService, SurgeryService>();
+builder.Services.AddScoped<IMedicineService, MedicineService>();
+builder.Services.AddScoped<ILabTestService, LabTestService>();
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSignalR();
 
 // Configure Swagger with JWT support
 builder.Services.AddSwaggerGen(c =>
@@ -117,5 +122,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<practo_backend.Hubs.ChatHub>("/chathub");
 
 app.Run();

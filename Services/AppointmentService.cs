@@ -78,4 +78,61 @@ public class AppointmentService : IAppointmentService
             throw;
         }
     }
+
+    public async Task<IEnumerable<AppointmentDetailsDto>> GetPatientAppointmentsAsync(int patientId)
+    {
+        return await _context.Appointments
+            .Include(a => a.Doctor)
+                .ThenInclude(d => d.Specialty)
+            .Include(a => a.Doctor)
+                .ThenInclude(d => d.User)
+            .Include(a => a.Clinic)
+            .Where(a => a.PatientId == patientId)
+            .OrderByDescending(a => a.AppointmentDateTime)
+            .Select(a => new AppointmentDetailsDto
+            {
+                Id = a.Id,
+                PatientId = a.PatientId,
+                PatientName = a.PatientName,
+                DoctorId = a.DoctorId,
+                DoctorName = a.Doctor.User != null ? a.Doctor.User.FirstName + " " + a.Doctor.User.LastName : "",
+                DoctorSpecialty = a.Doctor.Specialty != null ? a.Doctor.Specialty.Name : "",
+                ClinicId = a.ClinicId,
+                ClinicName = a.Clinic != null ? a.Clinic.Name : "",
+                AppointmentDateTime = a.AppointmentDateTime,
+                Type = a.Type,
+                Status = a.Status,
+                ReasonForVisit = a.ReasonForVisit,
+                CreatedAt = a.CreatedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<AppointmentDetailsDto>> GetDoctorAppointmentsAsync(int doctorId)
+    {
+        return await _context.Appointments
+            .Include(a => a.Patient)
+            .Include(a => a.Doctor)
+                .ThenInclude(d => d.User)
+            .Include(a => a.Clinic)
+            .Where(a => a.DoctorId == doctorId)
+            .OrderByDescending(a => a.AppointmentDateTime)
+            .Select(a => new AppointmentDetailsDto
+            {
+                Id = a.Id,
+                PatientId = a.PatientId,
+                PatientName = a.PatientName,
+                DoctorId = a.DoctorId,
+                DoctorName = a.Doctor.User != null ? a.Doctor.User.FirstName + " " + a.Doctor.User.LastName : "",
+                DoctorSpecialty = "",
+                ClinicId = a.ClinicId,
+                ClinicName = a.Clinic != null ? a.Clinic.Name : "",
+                AppointmentDateTime = a.AppointmentDateTime,
+                Type = a.Type,
+                Status = a.Status,
+                ReasonForVisit = a.ReasonForVisit,
+                CreatedAt = a.CreatedAt
+            })
+            .ToListAsync();
+    }
 }

@@ -43,4 +43,30 @@ public class AppointmentController : ControllerBase
             return StatusCode(500, new { message = "An error occurred while booking the appointment.", details = ex.Message });
         }
     }
+
+    [HttpGet("patient")]
+    public async Task<IActionResult> GetPatientAppointments()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdStr, out var patientId))
+        {
+            return Unauthorized("Invalid user token.");
+        }
+
+        var appointments = await _appointmentService.GetPatientAppointmentsAsync(patientId);
+        return Ok(appointments);
+    }
+
+    [HttpGet("doctor")]
+    public async Task<IActionResult> GetDoctorAppointments()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdStr, out var doctorId))
+        {
+            return Unauthorized("Invalid user token.");
+        }
+
+        var appointments = await _appointmentService.GetDoctorAppointmentsAsync(doctorId);
+        return Ok(appointments);
+    }
 }

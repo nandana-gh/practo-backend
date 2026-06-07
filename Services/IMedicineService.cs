@@ -1,0 +1,8 @@
+using practo_backend.DTOs;
+
+namespace practo_backend.Services;
+
+public interface IMedicineService
+{
+    Task<MedicinesLandingDto> GetLandingDataAsync();
+}
