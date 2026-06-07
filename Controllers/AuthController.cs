@@ -47,6 +47,32 @@ public class AuthController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        if (user.Role == UserRole.Doctor)
+        {
+            var doctor = new Doctor
+            {
+                UserId = user.Id,
+                SpecialtyId = 1, // Fallback to a default specialty, normally this would be selected
+                ExperienceYears = request.ExperienceYears ?? 0,
+                VideoConsultationFee = request.VideoConsultationFee ?? 0,
+                IsApproved = false
+            };
+            
+            // Try to assign the first available specialty as default if 1 doesn't exist
+            var specialtyExists = await _context.Specialties.AnyAsync(s => s.Id == 1);
+            if (!specialtyExists)
+            {
+                var firstSpecialty = await _context.Specialties.FirstOrDefaultAsync();
+                if (firstSpecialty != null)
+                {
+                    doctor.SpecialtyId = firstSpecialty.Id;
+                }
+            }
+
+            _context.Doctors.Add(doctor);
+            await _context.SaveChangesAsync();
+        }
+
         // Automatically trigger OTP send for verification
         await SendOtpInternalAsync(user.Email);
 

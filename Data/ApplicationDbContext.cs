@@ -28,6 +28,15 @@ public class ApplicationDbContext : DbContext
     public DbSet<HealthCheckupPackage> HealthCheckupPackages { get; set; }
     public DbSet<HealthConcern> HealthConcerns { get; set; }
     public DbSet<VitalCheckup> VitalCheckups { get; set; }
+    
+    public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+    public DbSet<UserSubscription> UserSubscriptions { get; set; }
+    public DbSet<MedicineOrder> MedicineOrders { get; set; }
+    public DbSet<MedicineOrderItem> MedicineOrderItems { get; set; }
+    public DbSet<LabTestOrder> LabTestOrders { get; set; }
+    public DbSet<LabTestOrderItem> LabTestOrderItems { get; set; }
+    public DbSet<MedicalRecord> MedicalRecords { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -88,5 +97,17 @@ public class ApplicationDbContext : DbContext
             .WithMany(sc => sc.Treatments)
             .HasForeignKey(st => st.SurgeryCategoryId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<MedicineOrder>()
+            .HasOne(m => m.User)
+            .WithMany()
+            .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<UserSubscription>()
+            .HasOne(us => us.User)
+            .WithMany()
+            .HasForeignKey(us => us.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

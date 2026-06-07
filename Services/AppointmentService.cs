@@ -8,10 +8,12 @@ namespace practo_backend.Services;
 public class AppointmentService : IAppointmentService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IPaymentService _paymentService;
 
-    public AppointmentService(ApplicationDbContext context)
+    public AppointmentService(ApplicationDbContext context, IPaymentService paymentService)
     {
         _context = context;
+        _paymentService = paymentService;
     }
 
     public async Task<Appointment?> BookAppointmentAsync(int patientId, BookAppointmentDto dto)
@@ -65,9 +67,17 @@ public class AppointmentService : IAppointmentService
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _context.Appointments.AddAsync(appointment);
-            await _context.SaveChangesAsync();
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync(); // Save to get Appointment ID
             
+            // Generate Razorpay Order
+            if (fee > 0)
+            {
+                string receiptId = $"apt_{appointment.Id}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                appointment.RazorpayOrderId = _paymentService.CreateOrder(fee, receiptId);
+                await _context.SaveChangesAsync();
+            }
+
             await transaction.CommitAsync();
 
             return appointment;

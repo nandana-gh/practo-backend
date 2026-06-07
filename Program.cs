@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
 
 // Configure MySQL Connection
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -59,6 +60,7 @@ builder.Services.AddScoped<IVideoConsultService, VideoConsultService>();
 builder.Services.AddScoped<ISurgeryService, SurgeryService>();
 builder.Services.AddScoped<IMedicineService, MedicineService>();
 builder.Services.AddScoped<ILabTestService, LabTestService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSignalR();

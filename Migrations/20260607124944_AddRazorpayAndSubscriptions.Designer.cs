@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using practo_backend.Data;
 
@@ -11,9 +12,11 @@ using practo_backend.Data;
 namespace practo_backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260607124944_AddRazorpayAndSubscriptions")]
+    partial class AddRazorpayAndSubscriptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -326,105 +329,6 @@ namespace practo_backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("HealthConcerns");
-                });
-
-            modelBuilder.Entity("practo_backend.Models.LabTestOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("OrderDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("RazorpayOrderId")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("RazorpayPaymentId")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("ShippingAddress")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("LabTestOrders");
-                });
-
-            modelBuilder.Entity("practo_backend.Models.LabTestOrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("DiagnosticTestId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("HealthCheckupPackageId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LabTestOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DiagnosticTestId");
-
-                    b.HasIndex("HealthCheckupPackageId");
-
-                    b.HasIndex("LabTestOrderId");
-
-                    b.ToTable("LabTestOrderItems");
-                });
-
-            modelBuilder.Entity("practo_backend.Models.MedicalRecord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FileUrl")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("PatientId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PatientId");
-
-                    b.ToTable("MedicalRecords");
                 });
 
             modelBuilder.Entity("practo_backend.Models.MedicineCategory", b =>
@@ -756,10 +660,6 @@ namespace practo_backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("MobileNumber")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -998,51 +898,6 @@ namespace practo_backend.Migrations
                     b.Navigation("Doctor");
                 });
 
-            modelBuilder.Entity("practo_backend.Models.LabTestOrder", b =>
-                {
-                    b.HasOne("practo_backend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("practo_backend.Models.LabTestOrderItem", b =>
-                {
-                    b.HasOne("practo_backend.Models.DiagnosticTest", "DiagnosticTest")
-                        .WithMany()
-                        .HasForeignKey("DiagnosticTestId");
-
-                    b.HasOne("practo_backend.Models.HealthCheckupPackage", "HealthCheckupPackage")
-                        .WithMany()
-                        .HasForeignKey("HealthCheckupPackageId");
-
-                    b.HasOne("practo_backend.Models.LabTestOrder", "Order")
-                        .WithMany("Items")
-                        .HasForeignKey("LabTestOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DiagnosticTest");
-
-                    b.Navigation("HealthCheckupPackage");
-
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("practo_backend.Models.MedicalRecord", b =>
-                {
-                    b.HasOne("practo_backend.Models.User", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Patient");
-                });
-
             modelBuilder.Entity("practo_backend.Models.MedicineOrder", b =>
                 {
                     b.HasOne("practo_backend.Models.User", "User")
@@ -1145,11 +1000,6 @@ namespace practo_backend.Migrations
                     b.Navigation("DoctorClinics");
 
                     b.Navigation("Reviews");
-                });
-
-            modelBuilder.Entity("practo_backend.Models.LabTestOrder", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("practo_backend.Models.MedicineOrder", b =>

@@ -45,4 +45,22 @@ public class ChatHub : Hub
         // Broadcast to all clients in the group
         await Clients.Group(appointmentId).SendAsync("ReceiveMessage", chatMessage.Id, senderId, message, chatMessage.SentAt);
     }
+
+    // WebRTC Signaling: Send Offer
+    public async Task SendOffer(string appointmentId, string offer)
+    {
+        await Clients.OthersInGroup(appointmentId).SendAsync("ReceiveOffer", offer);
+    }
+
+    // WebRTC Signaling: Send Answer
+    public async Task SendAnswer(string appointmentId, string answer)
+    {
+        await Clients.OthersInGroup(appointmentId).SendAsync("ReceiveAnswer", answer);
+    }
+
+    // WebRTC Signaling: Send ICE Candidate
+    public async Task SendIceCandidate(string appointmentId, string candidate)
+    {
+        await Clients.OthersInGroup(appointmentId).SendAsync("ReceiveIceCandidate", candidate);
+    }
 }

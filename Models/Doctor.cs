@@ -19,6 +19,8 @@ public class Doctor
     public string About { get; set; } = string.Empty;
     public double RecommendationPercentage { get; set; }
     
+    public bool IsApproved { get; set; } = false;
+    
     public ICollection<DoctorClinic> DoctorClinics { get; set; } = new List<DoctorClinic>();
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();

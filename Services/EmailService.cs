@@ -76,4 +76,63 @@ public class EmailService : IEmailService
             throw; 
         }
     }
+
+    public async Task SendSurgeryNotificationAsync(string toEmail, string name, string surgeryName)
+    {
+        var smtpSettings = _config.GetSection("Smtp");
+        var host = smtpSettings["Host"];
+        var username = smtpSettings["Username"];
+
+        if (string.IsNullOrEmpty(host) || username == "your_email@gmail.com")
+        {
+            var message = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SURGERY LEAD NOTIFICATION for {toEmail}: Hello {name}, your surgery consultation for {surgeryName} is confirmed. A doctor will contact you shortly.\n";
+            _logger.LogInformation("EMAIL SIMULATOR: Send Surgery Notification to {Email}", toEmail);
+
+            try
+            {
+                if (!Directory.Exists(_scratchPath))
+                {
+                    Directory.CreateDirectory(_scratchPath);
+                }
+                var filePath = Path.Combine(_scratchPath, "otp_logs.txt");
+                await File.AppendAllTextAsync(filePath, message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to write notification to scratch file");
+            }
+            return;
+        }
+
+        var port = int.Parse(smtpSettings["Port"] ?? "587");
+        var password = smtpSettings["Password"];
+        var enableSsl = bool.Parse(smtpSettings["EnableSsl"] ?? "true");
+
+        using var client = new SmtpClient(host, port)
+        {
+            Credentials = new NetworkCredential(username, password),
+            EnableSsl = enableSsl
+        };
+
+        var mailMessage = new MailMessage
+        {
+            From = new MailAddress(username!, "Practo Care"),
+            Subject = "Surgery Consultation Update",
+            Body = $"<h2>Hello {name},</h2><p>Your surgery consultation request for <b>{surgeryName}</b> has been received.</p><p>Our dedicated care team will call you shortly to discuss further details.</p><p>Thank you,<br/>Practo Team</p>",
+            IsBodyHtml = true
+        };
+
+        mailMessage.To.Add(toEmail);
+
+        try
+        {
+            await client.SendMailAsync(mailMessage);
+            _logger.LogInformation("Successfully sent real surgery notification email to {Email}", toEmail);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send real surgery notification email to {Email}", toEmail);
+            throw; 
+        }
+    }
 }

@@ -20,6 +20,7 @@ public class SearchService : ISearchService
             .Include(d => d.Specialty)
             .Include(d => d.DoctorClinics)
                 .ThenInclude(dc => dc.Clinic)
+            .Where(d => d.IsApproved)
             .AsQueryable();
 
         // City filter
