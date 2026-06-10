@@ -15,7 +15,8 @@ builder.Services.AddMemoryCache();
 // Configure MySQL Connection
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 30))));
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 30)),
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure()));
 
 // Configure JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_practo_clone_key_1234567890_extremely_long_key_for_security";
