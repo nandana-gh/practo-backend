@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: practo-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: practo-backend
+                port:
+                  number: 5000
+          - path: /swagger(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: practo-backend
+                port:
+                  number: 5000
+          - path: /chathub(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: practo-backend
+                port:
+                  number: 5000
+          - path: /()(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: practo-frontend
+                port:
+                  number: 80
