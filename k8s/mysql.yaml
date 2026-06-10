@@ -4,12 +4,12 @@ metadata:
   name: mysql-secret
 type: Opaque
 stringData:
-  root-password: rootpassword
+  root-password: root
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: app-mysql
+  name: practo-mysql
 spec:
   clusterIP: None
   selector:
@@ -20,9 +20,9 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: app-mysql
+  name: practo-mysql
 spec:
-  serviceName: app-mysql
+  serviceName: practo-mysql
   replicas: 1
   selector:
     matchLabels:
@@ -43,7 +43,7 @@ spec:
                   name: mysql-secret
                   key: root-password
             - name: MYSQL_DATABASE
-              value: productdb
+              value: practodb
           ports:
             - containerPort: 3306
           volumeMounts:
@@ -51,7 +51,7 @@ spec:
               mountPath: /var/lib/mysql
           readinessProbe:
             exec:
-              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -prootpassword"]
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -proot"]
             initialDelaySeconds: 20
             periodSeconds: 10
   volumeClaimTemplates:

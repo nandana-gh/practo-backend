@@ -4,47 +4,112 @@ metadata:
   name: api-secret
 type: Opaque
 stringData:
-  connection-string: "Server=app-mysql;Port=3306;Database=productdb;User=root;Password=rootpassword;"
+  connection-string: "Server=practo-mysql;Port=3306;Database=practodb;User=root;Password=root;"
+  Jwt__Issuer: "practo_backend"
+  Jwt__Audience: "practo_frontend"
+  Jwt__Key: "super_secret_practo_clone_key_1234567890_extremely_long_key_for_security"
+  Smtp__Host: "smtp.gmail.com"
+  Smtp__Port: "587"
+  Smtp__Username: "nandanar1711@gmail.com"
+  Smtp__Password: "wbzsvaezmwvrsoff"
+  Smtp__EnableSsl: "true"
+  Razorpay__KeyId: "rzp_test_SykLoVuV65Z8mA"
+  Razorpay__KeySecret: "LXOt8Mvg7wtb3cFKcrcOqFxV"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-api
+  name: practo-backend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: product-api
+      app: practo-backend
   template:
     metadata:
       labels:
-        app: product-api
+        app: practo-backend
     spec:
       containers:
-        - name: product-api
-          image: fullstackacr.azurecr.io/product-api:latest
+        - name: practo-backend
+          image: practoacr.azurecr.io/practo-backend:latest
           env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Development"
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
             - name: ConnectionStrings__DefaultConnection
               valueFrom:
                 secretKeyRef:
                   name: api-secret
                   key: connection-string
+            - name: Jwt__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Jwt__Issuer
+            - name: Jwt__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Jwt__Audience
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Jwt__Key
+            - name: Smtp__Host
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Smtp__Host
+            - name: Smtp__Port
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Smtp__Port
+            - name: Smtp__Username
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Smtp__Username
+            - name: Smtp__Password
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Smtp__Password
+            - name: Smtp__EnableSsl
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Smtp__EnableSsl
+            - name: Razorpay__KeyId
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Razorpay__KeyId
+            - name: Razorpay__KeySecret
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: Razorpay__KeySecret
           ports:
             - containerPort: 8080
           readinessProbe:
             httpGet:
-              path: /api/products
+              path: /swagger/index.html
               port: 8080
-            initialDelaySeconds: 20
+            initialDelaySeconds: 15
             periodSeconds: 10
+            failureThreshold: 10
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: product-api
+  name: practo-backend
 spec:
   selector:
-    app: product-api
+    app: practo-backend
   ports:
     - port: 5000
       targetPort: 8080
